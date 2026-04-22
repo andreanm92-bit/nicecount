@@ -18,8 +18,8 @@ $ProgressPreference = "SilentlyContinue"
 
 function Write-Step {
     param([string]$Message)
-    Write-Host ""
-    Write-Host "==> $Message" -ForegroundColor Cyan
+    Write-DbHost ""
+    Write-DbHost "==> $Message" -ForegroundColor Cyan
 }
 
 function Throw-Friendly {
