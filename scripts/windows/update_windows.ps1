@@ -416,7 +416,7 @@ $repoDir = Ensure-Repo -RepoUrlValue $RepoUrl -TargetDirValue $TargetDir -Branch
 Write-Step "Resolving Python"
 $pythonCommand = Resolve-PythonCommand
 
-$databaseUrl = Build-DatabaseUrl -Host $PgHost -Port $PgPort -User $PgUser -Password $PgPassword -Name $DatabaseName
+$databaseUrl = Build-DatabaseUrl -DbHost $PgHost -Port $PgPort -User $PgUser -Password $PgPassword -DatabaseName $DatabaseName
 Ensure-EnvFileIfMissing -RepoDir $repoDir -DatabaseUrl $databaseUrl -Port $AppPort
 
 Stop-NiceCountServer -RepoDir $repoDir -Port $AppPort
