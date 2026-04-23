@@ -18,8 +18,8 @@ $ProgressPreference = "SilentlyContinue"
 
 function Write-Step {
     param([string]$Message)
-    Write-Host ""
-    Write-Host "==> $Message" -ForegroundColor Cyan
+    Write-DbHost ""
+    Write-DbHost "==> $Message" -ForegroundColor Cyan
 }
 
 function Throw-Friendly {
@@ -156,7 +156,7 @@ function Update-EnvLine {
 
 function Build-DatabaseUrl {
     param(
-        [string]$Host,
+        [string]$DbHost,
         [int]$Port,
         [string]$User,
         [string]$Password,
@@ -165,10 +165,10 @@ function Build-DatabaseUrl {
 
     if ($Password) {
         $encodedPassword = [System.Uri]::EscapeDataString($Password)
-        return "postgresql+psycopg://${User}:${encodedPassword}@${Host}:${Port}/${Name}"
+        return "postgresql+psycopg://${User}:${encodedPassword}@${DbHost}:${Port}/${Name}"
     }
 
-    return "postgresql+psycopg://${User}@${Host}:${Port}/${Name}"
+    return "postgresql+psycopg://${User}@${DbHost}:${Port}/${Name}"
 }
 
 function Ensure-Repo {
@@ -238,7 +238,7 @@ function Ensure-EnvFileIfMissing {
 function Ensure-PostgresDatabase {
     param(
         [string]$RepoDir,
-        [string]$Host,
+        [string]$DbHost,
         [int]$Port,
         [string]$User,
         [string]$Password,
@@ -256,16 +256,16 @@ function Ensure-PostgresDatabase {
 
     try {
         Write-Step "Checking PostgreSQL connection"
-        Invoke-External -FilePath "psql" -Arguments @("-v", "ON_ERROR_STOP=1", "-h", $Host, "-p", "$Port", "-U", $User, "-d", "postgres", "-tAc", "SELECT 1;")
+        Invoke-External -FilePath "psql" -Arguments @("-v", "ON_ERROR_STOP=1", "-h", $DbHost, "-p", "$Port", "-U", $User, "-d", "postgres", "-tAc", "SELECT 1;")
 
-        $databaseExists = & psql -h $Host -p "$Port" -U $User -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname = '$Name';"
+        $databaseExists = & psql -h $DbHost -p "$Port" -U $User -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname = '$Name';"
         if ($LASTEXITCODE -ne 0) {
             Throw-Friendly "Failed to check PostgreSQL database existence."
         }
 
         if (-not ($databaseExists -match "1")) {
             Write-Step "Creating database $Name"
-            Invoke-External -FilePath "psql" -Arguments @("-v", "ON_ERROR_STOP=1", "-h", $Host, "-p", "$Port", "-U", $User, "-d", "postgres", "-c", "CREATE DATABASE $Name;")
+            Invoke-External -FilePath "psql" -Arguments @("-v", "ON_ERROR_STOP=1", "-h", $DbHost, "-p", "$Port", "-U", $User, "-d", "postgres", "-c", "CREATE DATABASE $Name;")
         }
 
         Write-Step "Applying schema and migrations"
@@ -282,7 +282,7 @@ function Ensure-PostgresDatabase {
         )) {
             $sqlPath = Join-Path $RepoDir $sqlFile
             if (Test-Path $sqlPath) {
-                Invoke-External -FilePath "psql" -Arguments @("-v", "ON_ERROR_STOP=1", "-h", $Host, "-p", "$Port", "-U", $User, "-d", $Name, "-f", $sqlPath)
+                Invoke-External -FilePath "psql" -Arguments @("-v", "ON_ERROR_STOP=1", "-h", $DbHost, "-p", "$Port", "-U", $User, "-d", $Name, "-f", $sqlPath)
             }
         }
     }
